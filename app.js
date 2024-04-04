@@ -64,66 +64,71 @@ export const timeout = (ms) =>
 export const dump_banner = async (university, page, saveToDb = true) => {
   const outerResults = [];
 
-  // Ensure page navigation is awaited
   await page.goto(university.dynamicScheduleUrl);
   await page.waitForSelector("select");
 
-  // Select term 'Summer 2024'
-  await page.evaluate(() => {
-    const allowedTerms = [
-      "Summer 2024",
-      "Summer Session 2024",
-      "Summer Semester 2024",
-      "Summer Term III 2024- Ft Campb",
-      "Summer Credit Term 2024",
-      "Summer I 2024",
-      "Summer II 2024",
-    ];
+  const allowedTerms = [
+    "Summer 2024",
+    "Summer Session 2024",
+    "Summer Semester 2024",
+    "Summer Term III 2024- Ft Campb",
+    "Summer Credit Term 2024",
+    "Summer I 2024",
+    "Summer II 2024",
+  ];
 
+  // Find all matching terms
+  const matchingTerms = await page.evaluate((allowedTerms) => {
     const selectElement = document.querySelector("select");
     const options = selectElement.options;
+    const matching = [];
     for (let i = 0; i < options.length; i++) {
       if (allowedTerms.includes(options[i].text)) {
-        selectElement.selectedIndex = i;
-        selectElement.dispatchEvent(new Event("change"));
-        break;
+        matching.push(i); // Store the index of the matching term
       }
     }
-  });
+    return matching;
+  }, allowedTerms);
 
-  // Click the submit button and wait
-  await page.click("input[type=submit]");
-  await timeout(1000);
+  // Iterate over all matching terms and scrape data
+  for (const termIndex of matchingTerms) {
+    await page.evaluate((termIndex) => {
+      const selectElement = document.querySelector("select");
+      selectElement.selectedIndex = termIndex;
+      selectElement.dispatchEvent(new Event("change"));
+    }, termIndex);
 
-  // Select all subjects
-  await page.evaluate(() => {
-    const selectElement = document.querySelector("#subj_id");
-    for (const optionElement of selectElement.options) {
-      optionElement.selected = true;
-    }
-    selectElement.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+    await page.click("input[type=submit]");
+    await timeout(1000);
 
-  await page.waitForSelector("input[type=submit]");
-  await page.click("input[type=submit]");
-  await page.waitForNetworkIdle();
-  await timeout(4000);
+    await page.evaluate(() => {
+      const selectElement = document.querySelector("#subj_id");
+      for (const optionElement of selectElement.options) {
+        optionElement.selected = true;
+      }
+      selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+    });
 
-  // Dump the page content to 'page.html'
-  const content = await page.content();
+    await page.waitForSelector("input[type=submit]");
+    await page.click("input[type=submit]");
+    await page.waitForNetworkIdle();
+    await timeout(4000);
 
-  const results = parseHtmlForCourses(content, university);
-  outerResults.push(...results);
+    const content = await page.content();
+    const results = parseHtmlForCourses(content, university);
+    outerResults.push(...results);
+  }
 
-  let i = 0;
   console.log("Inserting courses to db");
   if (saveToDb) {
-    await prisma.course.createMany({
-      data: results,
-      skipDuplicates: true,
-    });
+    for (const resultChunk of outerResults) {
+      await prisma.course.createMany({
+        data: resultChunk,
+        skipDuplicates: true,
+      });
+    }
   } else {
-    console.log(results);
+    console.log(outerResults);
   }
 };
 
@@ -161,7 +166,7 @@ export const main = async () => {
   await timeout(600 * 1000);
   await browser.close();
 };
-// main();
+main();
 
 const parseHtmlForCourses = (html, university) => {
   // writeFileSync("page.html", content);
