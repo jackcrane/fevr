@@ -51,15 +51,37 @@ export const patch = async (req, res) => {
     },
   }));
 
-  // Combine nameQuery and codeQuery into a single OR array, including only those that are present
+  // Initialize the queryConditions array with nameQuery and codeQuery
   const queryConditions = [];
   if (nameQuery) queryConditions.push(...nameQuery);
   if (codeQuery) queryConditions.push(...codeQuery);
 
+  // Optional: Add registrationStart and registrationEnd conditions
+  if (registrationStart) {
+    queryConditions.push({
+      registrationStart: {
+        [registrationStart.direction]: new Date(registrationStart.date),
+      },
+    });
+  }
+
+  if (registrationEnd) {
+    queryConditions.push({
+      registrationEnd: {
+        [registrationEnd.direction]: new Date(registrationEnd.date),
+      },
+    });
+  }
+
   // Adjust the where clause to utilize the combined queryConditions
   const courses = await prisma.course.findMany({
     where: {
-      OR: queryConditions,
+      AND: [
+        // Ensures all conditions must be met, especially useful for date ranges
+        {
+          OR: queryConditions,
+        },
+      ],
     },
     take: 100,
     include: {
