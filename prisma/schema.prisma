@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model university {
+  id String @id @default(uuid())
+  fullName String
+  shortName String
+  homepage String
+  dynamicScheduleUrl String
+  bannerBaseUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  scannedAt DateTime?
+  supportLevel Int @default(0)
+  courses course[]
+}
+
+model course {
+  id String @id @default(uuid())
+  universityId String
+  university university @relation(fields: [universityId], references: [id])
+  link String
+  title String
+  name String
+  crn String
+  code String
+  section String
+  term String
+  registrationStart DateTime?
+  registrationEnd DateTime?
+  levels String
+  attributes String @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  scannedAt DateTime?
+  @@unique([universityId, title, registrationStart, registrationEnd])
+}
+
+// VALID OPTIONS FOR SUPPORT LEVELS:
+// 0 NONE
+// 1 QUEUED
+// 2 FULL
+// -1 WONTFIX
+// -2 INCOMPATIBLE
+
+
+
+// const courseInfo = {
+//       university: university.name,
+//       link,
+//       title: courseTitleString,
+//       name: courseName,
+//       crn: crn,
+//       code: courseCode,
+//       section: section,
+//       term: associatedTerm,
+//       registrationDates: registrationDates,
+//       levels: levels,
+//       attributes: attributes,
+//     };
