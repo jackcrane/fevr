@@ -1,61 +1,7 @@
 import puppeteer from "puppeteer";
-import { writeFileSync, readFileSync } from "fs";
-import { scrollPageToBottom } from "puppeteer-autoscroll-down";
 import cheerio from "cheerio";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-import cliProgress from "cli-progress";
-
-const tests = {
-  slu: {
-    name: "SLU",
-    dyn_sched: "https://banner.slu.edu/ssbprd/bwckschd.p_disp_dyn_sched",
-    base: "https://banner.slu.edu",
-  },
-  cbu: {
-    name: "CBU",
-    dyn_sched: "https://bweb.cbu.edu/PROD/bwckschd.p_disp_dyn_sched",
-    base: "https://bweb.cbu.edu/PROD",
-  },
-  truman: {
-    name: "Truman",
-    dyn_sched:
-      "https://shale1.truman.edu:8443/ADMINssb/bwckschd.p_disp_dyn_sched",
-    base: "https://shale1.truman.edu:8443/ADMINssb",
-  },
-  semo: {
-    name: "SEMO",
-    dyn_sched: "https://banssb.semo.edu/prod/bwckschd.p_disp_dyn_sched",
-    base: "https://banssb.semo.edu/prod",
-  },
-  laverne: {
-    name: "La Verne",
-    dyn_sched:
-      "https://ban8ssbtc-prod.laverne.edu/prod/bwckschd.p_disp_dyn_sched",
-    base: "https://ban8ssbtc-prod.laverne.edu/prod",
-  },
-  alabama_a_m: {
-    name: "Alabama A&M",
-    dyn_sched: "https://ssb1.aamu.edu/PROD/bwckschd.p_disp_dyn_sched",
-    base: "https://ssb1.aamu.edu/PROD",
-  },
-  apsu: {
-    name: "APSU",
-    dyn_sched: "https://banwssprod.apsu.edu/prod/bwckschd.p_disp_dyn_sched",
-    base: "https://banwssprod.apsu.edu/prod",
-  },
-  nsula: {
-    name: "NSULA",
-    dyn_sched: "https://connect.nsula.edu/prod/bwckschd.p_disp_dyn_sched",
-    base: "https://connect.nsula.edu/prod",
-  },
-  chattenooga: {
-    name: "Chattenooga State",
-    dyn_sched:
-      "https://blss.chattanoogastate.edu/prod_ssb/bwckschd.p_disp_dyn_sched",
-    base: "https://blss.chattanoogastate.edu/prod_ssb",
-  },
-};
 
 // Helper function for delays
 export const timeout = (ms) =>
@@ -67,31 +13,26 @@ export const dump_banner = async (university, page, saveToDb = true) => {
   await page.goto(university.dynamicScheduleUrl);
   await page.waitForSelector("select");
 
-  const allowedTerms = [
-    "Summer 2024",
-    "Summer Session 2024",
-    "Summer Semester 2024",
-    "Summer Term III 2024- Ft Campb",
-    "Summer Credit Term 2024",
-    "Summer I 2024",
-    "Summer II 2024",
-  ];
-
   // Find all matching terms
-  const matchingTerms = await page.evaluate((allowedTerms) => {
+  const _matchingTerms = await page.evaluate(() => {
     const selectElement = document.querySelector("select");
     const options = selectElement.options;
     const matching = [];
+    const matchingTermNames = [];
     for (let i = 0; i < options.length; i++) {
-      if (allowedTerms.includes(options[i].text)) {
+      const optionText = options[i].text;
+      if (optionText.includes("2024")) {
         matching.push(i); // Store the index of the matching term
+        matchingTermNames.push(optionText);
       }
     }
-    return matching;
-  }, allowedTerms);
+    return [matching, matchingTermNames];
+  });
+  const matchingTerms = _matchingTerms[0];
 
   // Iterate over all matching terms and scrape data
   for (const termIndex of matchingTerms) {
+    console.log("Scraping term", matchingTerms[termIndex]);
     await page.evaluate((termIndex) => {
       const selectElement = document.querySelector("select");
       selectElement.selectedIndex = termIndex;
@@ -111,24 +52,24 @@ export const dump_banner = async (university, page, saveToDb = true) => {
 
     await page.waitForSelector("input[type=submit]");
     await page.click("input[type=submit]");
-    await page.waitForNetworkIdle();
+    await page.waitForNetworkIdle({
+      timeout: 60 * 1000,
+    });
     await timeout(4000);
 
     const content = await page.content();
     const results = parseHtmlForCourses(content, university);
-    outerResults.push(...results);
-  }
-
-  console.log("Inserting courses to db");
-  if (saveToDb) {
-    for (const resultChunk of outerResults) {
+    console.log("Found", results.length, "courses");
+    if (saveToDb) {
       await prisma.course.createMany({
-        data: resultChunk,
+        data: results,
         skipDuplicates: true,
       });
+    } else {
+      console.log(results);
     }
-  } else {
-    console.log(outerResults);
+
+    await page.goto(university.dynamicScheduleUrl);
   }
 };
 
@@ -142,8 +83,19 @@ export const main = async () => {
     const universities = await prisma.university.findMany({
       where: {
         supportLevel: 2,
+        // scannedAt is null
+        OR: {
+          scannedAt: {
+            equals: null,
+          },
+          scannedAt: {
+            lt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 7), // 7 days ago
+          },
+        },
       },
     });
+    console.log("Found", universities.length, "universities to scan");
+    console.log(universities.map((u) => u.fullName).join(", "));
     for (const uni in universities) {
       console.log("Dumping for", universities[uni].fullName);
       await dump_banner(universities[uni], page);

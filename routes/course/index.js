@@ -42,23 +42,35 @@ export const patch = async (req, res) => {
   // Convert name and code filters into query conditions
   const nameQuery = name?.map((n) => ({
     name: {
-      [n.style]: n.text,
+      [n.style === "equals" ? "equals" : n.style]: n.text, // Adjusting the property to match Prisma's syntax
     },
   }));
   const codeQuery = code?.map((c) => ({
     code: {
-      [c.style]: c.text,
+      [c.style === "equals" ? "equals" : c.style]: c.text, // Adjusting the property to match Prisma's syntax
     },
   }));
 
-  // Initialize the queryConditions array with nameQuery and codeQuery
-  const queryConditions = [];
-  if (nameQuery) queryConditions.push(...nameQuery);
-  if (codeQuery) queryConditions.push(...codeQuery);
+  // Initialize the queryConditions array to ensure mandatory date conditions are met
+  const queryConditions = {
+    AND: [], // For mandatory conditions like date ranges
+    OR: [], // For optional conditions like name or code
+  };
 
-  // Optional: Add registrationStart and registrationEnd conditions
+  // Add nameQuery and codeQuery to the OR condition
+  if (nameQuery && nameQuery.length) queryConditions.OR.push(...nameQuery);
+  if (codeQuery && codeQuery.length) queryConditions.OR.push(...codeQuery);
+
+  // Ensure at least one name or code condition exists
+  if (queryConditions.OR.length === 0) {
+    return res.status(400).json({
+      error: "Invalid query. No valid name or code conditions provided.",
+    });
+  }
+
+  // Add registrationStart and registrationEnd conditions to AND condition
   if (registrationStart) {
-    queryConditions.push({
+    queryConditions.AND.push({
       registrationStart: {
         [registrationStart.direction]: new Date(registrationStart.date),
       },
@@ -66,26 +78,19 @@ export const patch = async (req, res) => {
   }
 
   if (registrationEnd) {
-    queryConditions.push({
+    queryConditions.AND.push({
       registrationEnd: {
         [registrationEnd.direction]: new Date(registrationEnd.date),
       },
     });
   }
 
-  // Adjust the where clause to utilize the combined queryConditions
+  // Execute the query with adjusted where clause
   const courses = await prisma.course.findMany({
-    where: {
-      AND: [
-        // Ensures all conditions must be met, especially useful for date ranges
-        {
-          OR: queryConditions,
-        },
-      ],
-    },
-    take: 100,
+    where: queryConditions,
+    take: 100, // Limit the number of results
     include: {
-      university: true,
+      university: true, // Assuming you want to include related university data
     },
   });
 

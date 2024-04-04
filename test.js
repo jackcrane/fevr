@@ -5,13 +5,13 @@ const prisma = new PrismaClient();
 
 const university = {
   id: 1,
-  fullName: "Montgomery College",
-  shortName: "MC",
+  fullName: "Southern University System",
+  shortName: "SUS",
   supportLevel: 0,
-  homepage: "https://www.montgomerycollege.edu/",
+  homepage: "https://www.sus.edu/",
   dynamicScheduleUrl:
-    "https://mcssb.glb.montgomerycollege.edu/eagle/bwckschd.p_disp_dyn_sched",
-  bannerBaseUrl: "https://mcssb.glb.montgomerycollege.edu/eagle",
+    "https://sucsprodssb.sus.edu/banner8ssb/bwckschd.p_disp_dyn_sched",
+  bannerBaseUrl: "https://sucsprodssb.sus.edu/banner8ssb",
 };
 
 const test = async () => {
@@ -29,8 +29,6 @@ const test = async () => {
   await browser.close();
 };
 
-test();
-
 const saveUniversityToPrisma = async () => {
   delete university.id;
   try {
@@ -47,4 +45,5 @@ const saveUniversityToPrisma = async () => {
   }
 };
 
-// saveUniversityToPrisma();
+// test();
+saveUniversityToPrisma();

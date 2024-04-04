@@ -1,0 +1,74 @@
+[
+  {
+    "id": "09e61d41-5d7d-4f22-96f2-b98dd63114d2",
+    "fullName": "Cleveland State Community College",
+    "shortName": "CSU",
+    "homepage": "https://www.clevelandstatecc.edu/",
+    "dynamicScheduleUrl": "https://ban-sserv.clevelandstatecc.edu/prod_ssb/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://ban-sserv.clevelandstatecc.edu/prod_ssb",
+    "createdAt": "2024-04-04T02:53:21.553Z",
+    "updatedAt": "2024-04-04T16:11:41.160Z",
+    "scannedAt": "2024-04-04T16:11:41.160Z",
+    "supportLevel": 2
+  },
+  {
+    "id": "47bb0c2e-5476-4dc5-a1af-b69582d925af",
+    "fullName": "Saint Louis University",
+    "shortName": "SLU",
+    "homepage": "https://slu.edu/",
+    "dynamicScheduleUrl": "https://banner.slu.edu/ssbprd/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://banner.slu.edu",
+    "createdAt": "2024-04-04T02:51:58.794Z",
+    "updatedAt": "2024-04-04T03:08:24.121Z",
+    "scannedAt": "2024-04-04T03:08:24.121Z",
+    "supportLevel": 2
+  },
+  {
+    "id": "50417523-c0ac-4135-908f-bb2067cba4b6",
+    "fullName": "Alabama A&M University",
+    "shortName": "aamu",
+    "homepage": "https://aamu.edu/",
+    "dynamicScheduleUrl": "https://ssb1.aamu.edu/PROD/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://ssb1.aamu.edu/PROD",
+    "createdAt": "2024-04-04T02:51:29.811Z",
+    "updatedAt": "2024-04-04T03:08:40.358Z",
+    "scannedAt": "2024-04-04T03:08:40.358Z",
+    "supportLevel": 2
+  },
+  {
+    "id": "6973d1cb-add0-4dcc-85cb-d031dfbeabb7",
+    "fullName": "Christian Brothers University",
+    "shortName": "CBU",
+    "homepage": "https://www.cbu.edu/",
+    "dynamicScheduleUrl": "https://bweb.cbu.edu/PROD/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://bweb.cbu.edu/PROD",
+    "createdAt": "2024-04-04T02:53:50.090Z",
+    "updatedAt": "2024-04-04T03:08:54.011Z",
+    "scannedAt": "2024-04-04T03:08:54.011Z",
+    "supportLevel": 2
+  },
+  {
+    "id": "6d4e88fc-6245-4fdf-85c4-8a983cfc480c",
+    "fullName": "Southeast Missouri State University",
+    "shortName": "SEMO",
+    "homepage": "https://semo.edu",
+    "dynamicScheduleUrl": "https://banssb.semo.edu/prod/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://banssb.semo.edu/prod",
+    "createdAt": "2024-04-04T02:50:46.966Z",
+    "updatedAt": "2024-04-04T03:09:09.243Z",
+    "scannedAt": "2024-04-04T03:09:09.243Z",
+    "supportLevel": 2
+  },
+  {
+    "id": "9045c552-da10-4319-bb70-c070a826dcfc",
+    "fullName": "La Verne",
+    "shortName": "La Verne",
+    "homepage": "https://laverne.edu/",
+    "dynamicScheduleUrl": "https://ban8ssbtc-prod.laverne.edu/prod/bwckschd.p_disp_dyn_sched",
+    "bannerBaseUrl": "https://ban8ssbtc-prod.laverne.edu/prod",
+    "createdAt": "2024-04-04T02:52:27.468Z",
+    "updatedAt": "2024-04-04T03:09:25.225Z",
+    "scannedAt": "2024-04-04T03:09:25.224Z",
+    "supportLevel": 2
+  }
+]

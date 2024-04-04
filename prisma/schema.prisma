@@ -22,6 +22,7 @@ model university {
   scannedAt DateTime?
   supportLevel Int @default(0)
   courses course[]
+  @@unique([fullName, shortName])
 }
 
 model course {

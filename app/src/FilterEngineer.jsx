@@ -66,16 +66,17 @@ function reformatArray(array) {
   const result = {};
 
   array.forEach((item) => {
-    // Extract field, text, and style from each item
     const { field, text, style } = item;
 
-    // Check if the result object already has the field as a key
-    if (!result[field]) {
-      result[field] = [];
+    if (field === "registrationStart" || field === "registrationEnd") {
+      // Handle date fields differently
+      result[field] = { date: text, direction: style };
+    } else {
+      if (!result[field]) {
+        result[field] = [];
+      }
+      result[field].push({ text, style });
     }
-
-    // Push the text and style as an object into the appropriate array
-    result[field].push({ text, style });
   });
 
   return result;
@@ -84,17 +85,19 @@ function reformatArray(array) {
 function reformatBackToObject(structuredData) {
   const resultArray = [];
 
-  // Iterate through each key in the structured data object
   Object.keys(structuredData).forEach((field) => {
-    // For each item in the array associated with this key...
-    structuredData[field].forEach((item) => {
-      // Push a new object to the resultArray, including the field
+    if (field === "registrationStart" || field === "registrationEnd") {
+      // Handle date fields differently
       resultArray.push({
-        field: field,
-        text: item.text,
-        style: item.style,
+        field,
+        text: structuredData[field].date,
+        style: structuredData[field].direction,
       });
-    });
+    } else {
+      structuredData[field].forEach((item) => {
+        resultArray.push({ field, text: item.text, style: item.style });
+      });
+    }
   });
 
   return resultArray;
@@ -113,41 +116,75 @@ export const FilterEngineer = ({ filters, setFilters, selectedCourse }) => {
       {filter.map((f, i) => (
         <FilterContainer key={i}>
           <Select
+            value={f.field}
             onChange={(e) => {
               const newFilter = [...filter];
-              newFilter[i].field = e.target.value;
+              const value = e.target.value;
+              // If switching to a date type, reset text and style
+              if (
+                value === "registrationStart" ||
+                value === "registrationEnd"
+              ) {
+                newFilter[i] = {
+                  ...newFilter[i],
+                  field: value,
+                  text: "",
+                  style: "gt",
+                };
+              } else {
+                newFilter[i].field = value;
+              }
               setFilter(newFilter);
             }}
           >
-            <option value="name" selected={f.field === "name"}>
-              Course name
+            <option value="name">Course name</option>
+            <option value="code">Course code</option>
+            <option
+              value="registrationStart"
+              disabled={filter.some((f) => f.field === "registrationStart")}
+            >
+              Registration Start
             </option>
-            <option value="code" selected={f.field === "code"}>
-              Course code
-            </option>
-          </Select>
-          <Select
-            onChange={(e) => {
-              const newFilter = [...filter];
-              newFilter[i].style = e.target.value;
-              setFilter(newFilter);
-            }}
-          >
-            <option value="equals" selected={f.style === "equals"}>
-              equals
-            </option>
-            <option value="contains" selected={f.style === "contains"}>
-              contains
-            </option>
-            <option value="startsWith" selected={f.style === "startsWith"}>
-              startsWith
-            </option>
-            <option value="endsWith" selected={f.style === "endsWith"}>
-              endsWith
+            <option
+              value="registrationEnd"
+              disabled={filter.some((f) => f.field === "registrationEnd")}
+            >
+              Registration End
             </option>
           </Select>
+          {f.field === "registrationStart" || f.field === "registrationEnd" ? (
+            <Select
+              value={f.style}
+              onChange={(e) => {
+                const newFilter = [...filter];
+                newFilter[i].style = e.target.value;
+                setFilter(newFilter);
+              }}
+            >
+              <option value="gt">Greater than</option>
+              <option value="lt">Less than</option>
+            </Select>
+          ) : (
+            <Select
+              value={f.style}
+              onChange={(e) => {
+                const newFilter = [...filter];
+                newFilter[i].style = e.target.value;
+                setFilter(newFilter);
+              }}
+            >
+              <option value="equals">equals</option>
+              <option value="contains">contains</option>
+              <option value="startsWith">startsWith</option>
+              <option value="endsWith">endsWith</option>
+            </Select>
+          )}
           <Input
-            type="text"
+            type={
+              f.field === "registrationStart" || f.field === "registrationEnd"
+                ? "date"
+                : "text"
+            }
             value={f.text}
             onChange={(e) => {
               const newFilter = [...filter];
@@ -165,11 +202,10 @@ export const FilterEngineer = ({ filters, setFilters, selectedCourse }) => {
             >
               Remove
             </Button>
-          ) : (
-            <></>
-          )}
+          ) : null}
         </FilterContainer>
       ))}
+
       <Button
         onClick={() => {
           setFilter([
@@ -263,26 +299,3 @@ export const FilterEngineer = ({ filters, setFilters, selectedCourse }) => {
     </EngineerContainer>
   );
 };
-
-/*
-
-{
-            "id": "043665a3-f0b2-4b3d-99b2-2f23743b8e7d",
-            "universityId": "47bb0c2e-5476-4dc5-a1af-b69582d925af",
-            "link": "https://banner.slu.edu/ssbprd/bwckschd.p_disp_detail_sched?term_in=202500&crn_in=30253",
-            "title": "Fundamentals of Project Management - 30253 - PMGT 1010 - 21",
-            "name": "Fundamentals of Project Management",
-            "crn": "30253",
-            "code": "PMGT 1010",
-            "section": "21",
-            "term": "Summer 2024",
-            "registrationStart": "2024-04-02T05:00:00.000Z",
-            "registrationEnd": "2024-06-30T05:00:00.000Z",
-            "levels": "Undergraduate",
-            "attributes": "Summer 2024, Apr 02, 2024 to Jun 30, 2024, Undergraduate, Prof. Studies Students Only, Internet Based / Online Campus, Lecture Schedule Type, 100% Distance - Asynchronous Instructional Method, 3.000 Credits, Class, Jun 17, 2024 - Aug 11, 2024, Lecture, Meegan   McKeethen (, )",
-            "createdAt": "2024-04-04T03:07:55.785Z",
-            "updatedAt": "2024-04-04T03:07:55.785Z",
-            "scannedAt": null
-        },
-
-*/
