@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
 import CalendarView from "./CalendarView";
 import moment from "moment";
+import styled from "styled-components";
+
+const Nav = styled.div`
+  background-color: #1a1c1d;
+  height: 50px;
+  padding: 10px;
+`;
+const HeaderText = styled.h1`
+  color: #c5c5c5;
+  margin: 0;
+`;
 
 export default () => {
   const [data, setData] = useState(null);
@@ -14,7 +25,7 @@ export default () => {
         body: JSON.stringify({
           name: [
             {
-              text: "f",
+              text: "Calc",
               style: "startsWith",
             },
           ],
@@ -29,7 +40,9 @@ export default () => {
     <>
       {data ? (
         <div>
-          <h2>Calendar View</h2>
+          <Nav>
+            <HeaderText>Calendar View</HeaderText>
+          </Nav>
           <CalendarView data={data.data} />
         </div>
       ) : (
