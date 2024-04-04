@@ -21,6 +21,8 @@ const Calendar = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
+  height: 100%;
 `;
 const CalendarRow = styled.div`
   display: flex;
@@ -36,6 +38,14 @@ const WeeklyLine = styled.div`
   width: 1px; /* Adjust the width as needed */
   background-color: #363636; /* Adjust the color as needed */
   left: ${(props) => props.offset}%;
+`;
+const WeekLabel = styled.div`
+  position: absolute;
+  top: 0;
+  left: ${(props) => props.offset}%;
+  transform: translateX(-100%);
+  color: #939393; /* Adjust the color as needed */
+  font-size: 14px; /* Adjust the font size as needed */
 `;
 const CalendarBar = styled.div`
   background-color: ${(props) => props.color[0]};
@@ -71,6 +81,9 @@ const CalendarText = styled.p`
   font-size: 14px;
   margin: 0;
 `;
+const Vspacer = styled.div`
+  height: 30px;
+`;
 
 const findDateExtremes = (data) => {
   let earliestStartDate = data[0].registrationStart;
@@ -96,7 +109,7 @@ const findDateExtremes = (data) => {
   };
 };
 
-const CalendarView = ({ data }) => {
+const CalendarView = ({ data, setSelectedCourse }) => {
   const { earliestStartDate, latestEndDate } = findDateExtremes(data);
   const startOfWeekDate = startOfWeek(new Date(earliestStartDate), {
     weekStartsOn: 0,
@@ -107,14 +120,24 @@ const CalendarView = ({ data }) => {
   return (
     <Calendar>
       {[...Array(Math.ceil(overallCalendarLength / 7)).keys()].map((week) => (
-        <WeeklyLine
-          key={week}
-          offset={((week * 7) / overallCalendarLength) * 100}
-        />
+        <>
+          <WeeklyLine
+            key={`line-${week}`}
+            offset={((week * 7) / overallCalendarLength) * 100}
+          />
+          <WeekLabel
+            key={`label-${week}`}
+            offset={((week * 7 + 3.5) / overallCalendarLength) * 100} // Center the label in the middle of the week
+          >
+            {format(addDays(startOfWeekDate, week * 7), "M/d")}
+          </WeekLabel>
+        </>
       ))}
+      <Vspacer />
       {data?.map((course) => (
         <CalendarRow key={course.id}>
           <CalendarEntry
+            setSelectedCourse={setSelectedCourse}
             dayOffset={differenceInCalendarDays(
               new Date(course.registrationStart),
               startOfWeekDate
@@ -139,12 +162,14 @@ const CalendarEntry = ({
   overallCalendarLength,
   dayLength,
   course,
+  setSelectedCourse,
 }) => {
   return (
     <CalendarBar
       startOffset={(dayOffset / overallCalendarLength) * 100}
       dayLength={(dayLength / overallCalendarLength) * 100}
       color={randomPastel()}
+      onClick={() => setSelectedCourse(course)}
     >
       <Padded>
         <Between>

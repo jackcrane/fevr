@@ -5,12 +5,13 @@ const prisma = new PrismaClient();
 
 const university = {
   id: 1,
-  fullName: "Christian Brothers University",
-  shortName: "CBU",
-  supportLevel: 2,
-  homepage: "https://www.cbu.edu/",
-  dynamicScheduleUrl: "https://bweb.cbu.edu/PROD/bwckschd.p_disp_dyn_sched",
-  bannerBaseUrl: "https://bweb.cbu.edu/PROD",
+  fullName: "Montgomery College",
+  shortName: "MC",
+  supportLevel: 0,
+  homepage: "https://www.montgomerycollege.edu/",
+  dynamicScheduleUrl:
+    "https://mcssb.glb.montgomerycollege.edu/eagle/bwckschd.p_disp_dyn_sched",
+  bannerBaseUrl: "https://mcssb.glb.montgomerycollege.edu/eagle",
 };
 
 const test = async () => {
@@ -28,7 +29,7 @@ const test = async () => {
   await browser.close();
 };
 
-// test();
+test();
 
 const saveUniversityToPrisma = async () => {
   delete university.id;
@@ -46,4 +47,4 @@ const saveUniversityToPrisma = async () => {
   }
 };
 
-saveUniversityToPrisma();
+// saveUniversityToPrisma();

@@ -76,6 +76,8 @@ export const dump_banner = async (university, page, saveToDb = true) => {
       "Summer Semester 2024",
       "Summer Term III 2024- Ft Campb",
       "Summer Credit Term 2024",
+      "Summer I 2024",
+      "Summer II 2024",
     ];
 
     const selectElement = document.querySelector("select");
@@ -159,7 +161,7 @@ export const main = async () => {
   await timeout(600 * 1000);
   await browser.close();
 };
-main();
+// main();
 
 const parseHtmlForCourses = (html, university) => {
   // writeFileSync("page.html", content);
